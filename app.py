@@ -58,11 +58,6 @@ def show_user_detail_form(user_id):
 
 @app.route('/users/<int:user_id>/edit', methods=['POST'])
 def update_user_detail(user_id):
-    # first_name = request.form.get('first-name')
-    # last_name = request.form.get('last-name')
-    # image_url = request.form.get('image-url')
-
-    # user = User(id=user_id, first_name=first_name, last_name=last_name, image_url=image_url)
     user = User.query.get(user_id)
 
     user.first_name = request.form.get('first-name')
