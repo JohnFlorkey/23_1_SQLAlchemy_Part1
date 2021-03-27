@@ -21,7 +21,7 @@ def home():
 
 @app.route('/users')
 def get_users():
-    users = User.query.all()
+    users = User.get_all_users()
     return render_template('users.html', users=users)
 
 

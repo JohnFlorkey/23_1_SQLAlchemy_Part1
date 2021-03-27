@@ -24,5 +24,9 @@ class User(db.Model):
     image_url = db.Column(db.String(2048),
                           nullable=True)
 
+    @classmethod
+    def get_all_users(cls):
+        return User.query.order_by(cls.last_name, cls.first_name).all()
+
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'.strip()
