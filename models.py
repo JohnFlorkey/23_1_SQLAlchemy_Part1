@@ -1,5 +1,6 @@
 """Models for Blogly."""
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.hybrid import hybrid_property
 
 db = SQLAlchemy()
 
@@ -28,5 +29,10 @@ class User(db.Model):
     def get_all_users(cls):
         return User.query.order_by(cls.last_name, cls.first_name).all()
 
-    def get_full_name(self):
+    def __init__(self, first_name, last_name):
+        self.first_name = first_name
+        self.last_name = last_name
+
+    @hybrid_property
+    def full_name(self):
         return f'{self.first_name} {self.last_name}'.strip()
