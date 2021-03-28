@@ -1,4 +1,6 @@
 """Models for Blogly."""
+from time import strftime
+
 from flask_sqlalchemy import SQLAlchemy
 import datetime
 
@@ -8,6 +10,7 @@ db = SQLAlchemy()
 def connect_db(app):
     db.app = app
     db.init_app(app)
+
 
 DEFAULT_IMAGE_URL = 'https://picsum.photos/200'
 
@@ -27,7 +30,6 @@ class User(db.Model):
     image_url = db.Column(db.String(2048),
                           nullable=True,
                           default=DEFAULT_IMAGE_URL)
-
 
     @classmethod
     def get_all_users(cls):
@@ -73,3 +75,7 @@ class Post(db.Model):
 
     def __repr__(self):
         return f"<Post {self.id} {self.title} {self.content} {self.created_at} {self.user_id}>"
+
+    @classmethod
+    def get_top_posts(cls):
+        return db.session.query(Post).order_by(Post.created_at.desc()).limit(5)

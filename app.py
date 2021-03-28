@@ -17,7 +17,8 @@ debug = DebugToolbarExtension(app)
 
 @app.route('/')
 def home():
-    return redirect('/users')
+    top_posts = Post.get_top_posts()
+    return render_template('home.html', posts=top_posts)
 
 
 @app.route('/users')
