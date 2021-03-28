@@ -1,6 +1,6 @@
 from unittest import TestCase
 from app import app
-from models import User, db
+from models import User, db, Post
 
 app.config['TESTING'] = True
 app.config['DEBUG_TB_HOSTS'] = ['dont-show-debug-toolbar']
@@ -14,15 +14,23 @@ db.create_all()
 class AppTests(TestCase):
 
     def setUp(self):
+        # remove any existing data before setting up test data
+        Post.query.delete()         # remove anything in the posts table
+        User.query.delete()         # remove anything in the users table
+
         """Add a test user"""
-
-        User.query.delete()
-
-        user = User(first_name='Test', last_name='Person', image_url='https://picsum.photos/200/300')
+        user = User(first_name='Test', last_name='Person')
         db.session.add(user)
         db.session.commit()
 
         self.user_id = user.id
+
+        """Add a test post"""
+        post = Post('First Post', 'Testing. Testing. 1,2,3', self.user_id)
+        db.session.add(post)
+        db.session.commit()
+
+        self.post_id = post.id
 
     def tearDown(self):
         """Clean up any open transactions"""
@@ -57,10 +65,9 @@ class AppTests(TestCase):
             self.assertIn('<h1>Create A User</h1>', html)   # the add_user page was rendered
 
     def test_post_users_new(self):
-        """Thest the add new user view"""
+        """Test the add new user view"""
         data = {'first-name': 'Peter',
-                'last-name': 'Parker',
-                'image-url': 'http://notaurl.com'}
+                'last-name': 'Parker'}
         with app.test_client() as client:
             resp = client.post('/users/new', data=data, follow_redirects=True)
             html = resp.get_data(as_text=True)
@@ -111,3 +118,67 @@ class AppTests(TestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn('<h1>Users</h1>', html)           # the users pages was returned
             self.assertNotIn('Test Person', html)           # the test user is not on the page
+
+    def test_show_create_post_form(self):
+        """Test the create new post view"""
+        with app.test_client() as client:
+            resp = client.get(f'/users/{self.user_id}/posts/new')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('<h1>Add Post for Test Person</h1>', html)       # the add post form was rendered
+
+    def test_add_post(self):
+        """Test the creation of a new post"""
+        data = {'title': 'Test Post',
+                'content': 'This is test content.'}
+        with app.test_client() as client:
+            resp = client.post(f'/users/{self.user_id}/posts/new', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('User Detail', html)          # the user detail page was returned
+            self.assertIn('Test Post', html)            # the new post is on the page
+
+    def test_show_post(self):
+        """Test the show post detail view"""
+        with app.test_client() as client:
+            resp = client.get(f'/posts/{self.post_id}')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Post Detail', html)          # the post detail page was rendered
+            self.assertIn('First Post', html)           # the test post is on the page
+
+    def test_show_edit_post_form(self):
+        """Test the edit post form view"""
+        with app.test_client() as client:
+            resp = client.get(f'/posts/{self.post_id}/edit')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('<h1>Edit Post</h1>', html)           # the edit post detail page was rendered
+            self.assertIn('value="First Post"', html)           # the form is populated with the test post data
+
+    def test_edit_post(self):
+        """Test the edit post view"""
+        data = {'title': 'Updated Post',
+                'content': 'This is updated test content.'}
+        with app.test_client() as client:
+            resp = client.post(f'/posts/{self.post_id}/edit', data=data, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Post Detail', html)              # the post detail page was returned
+            self.assertIn('Updated Post', html)             # the updated post data is on the page
+
+    def test_delete_post(self):
+        """Test the delete post view"""
+        with app.test_client() as client:
+            resp = client.post(f'/posts/{self.post_id}/delete', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('User Detail', html)              # the user detail page was returned
+            self.assertIn('Test Person', html)              # it's the user detail for the test user
+            self.assertNotIn('First Post', html)            # the test post is not on the page
