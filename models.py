@@ -33,6 +33,6 @@ class User(db.Model):
         self.first_name = first_name
         self.last_name = last_name
 
-    @hybrid_property
+    @property
     def full_name(self):
         return f'{self.first_name} {self.last_name}'.strip()
