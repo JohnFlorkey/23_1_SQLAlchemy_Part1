@@ -8,6 +8,12 @@
         <h1>{{post.title}}</h1>
         <p>{{post.content}}</p>
         <p class="fst-italic">By {{post.user.full_name}}</p>
+        <p>
+            <span class="fw-bold">Tags:</span>
+            {% for tag in post.tags %}
+            <span class="badge bg-primary">{{tag.name}}</span>
+            {% endfor %}
+        </p>
         <form action="/posts/{{post.id}}/edit" method="get">
             <button formaction="/users/{{post.user_id}}" formmethod="get" class="btn btn-outline-info">Cancel</button>
             <button type="submit" class="btn btn-primary">Edit</button>
