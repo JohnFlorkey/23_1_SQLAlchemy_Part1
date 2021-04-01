@@ -4,12 +4,18 @@
 <div class="container">
     <h1>Add Post for {{user.full_name}}</h1>
     <form action="/users/{{user.id}}/posts/new" method="POST">
-    <label for="title" class="form-label">Title</label>
-    <input type="text" id="title" name="title" class="form-control mb-3">
-    <label for="content" class="form-label">Content</label>
-    <textarea id="content" name="content" class="form-control mb-3" rows="3"></textarea>
-    <button formaction="/users/{{user.id}}" formmethod="get" class="btn btn-info">Cancel</button>
-    <button class="btn btn-success align-text-end">Add</button>
+        <label for="title" class="form-label">Title</label>
+        <input type="text" id="title" name="title" class="form-control mb-3">
+        <label for="content" class="form-label">Content</label>
+        <textarea id="content" name="content" class="form-control mb-3" rows="3"></textarea>
+        {% for tag in tags %}
+        <div>
+            <input type="checkbox" name="tag" id="{{tag.name}}" value="{{tag.name}}">
+            <label for="{{tag.name}}">{{tag.name}}</label>
+        </div>
+        {% endfor %}
+        <button formaction="/users/{{user.id}}" formmethod="get" class="btn btn-info">Cancel</button>
+        <button class="btn btn-success align-text-end">Add</button>
     </form>
 </div>
 {% endblock %}

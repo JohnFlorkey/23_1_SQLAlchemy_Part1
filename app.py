@@ -85,7 +85,9 @@ def delete_user(user_id):
 @app.route('/users/<int:user_id>/posts/new')
 def show_create_post_form(user_id):
     user = User.query.get_or_404(user_id)
-    return render_template('add_post.html', user=user)
+    tags = Tag.query.all()
+
+    return render_template('add_post.html', user=user, tags=tags)
 
 
 @app.route('/users/<int:user_id>/posts/new', methods=['POST'])
@@ -95,6 +97,13 @@ def add_post(user_id):
                     user_id)
 
     db.session.add(new_post)
+    db.session.commit()
+
+    tags = request.form.getlist('tag')
+    for tag in tags:
+        new_post_tag = Tag.query.filter_by(name=tag).first()
+        new_post.tags.append(new_post_tag)
+
     db.session.commit()
 
     return redirect(f'/users/{user_id}')
@@ -109,7 +118,10 @@ def show_post(post_id):
 @app.route('/posts/<int:post_id>/edit')
 def show_edit_post_form(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('edit_post_detail.html', post=post)
+    tags = Tag.query.all()
+    active_tags = [tag for tag in tags if tag in post.tags]
+
+    return render_template('edit_post_detail.html', post=post, tags=tags, active_tags=active_tags)
 
 
 @app.route('/posts/<int:post_id>/edit', methods=['POST'])
@@ -119,6 +131,35 @@ def edit_post(post_id):
     post.content = request.form.get('content')
 
     db.session.add(post)
+    db.session.commit()
+
+    """
+    Get all of the form items and filter to those with the 'tag-' prefix.
+    Then strip off the prefix.
+    """
+    import pdb
+    pdb.set_trace()
+
+    updated_tags = request.form.getlist('tag')
+
+    """
+    Check the form tags against the post's tags.
+    Add form tags that aren't associated with the post.
+    """
+    for existing_tag in post.tags:
+        if existing_tag.name not in updated_tags:
+            tag_to_remove = Tag.query.get_or_404(existing_tag.id)
+            PostTag.query.filter(PostTag.post_id == post.id, PostTag.tag_id == tag_to_remove.id).delete()
+
+    """
+    Check the post's tags against the form tags.
+    Remove post tags that aren't in the form list.
+    """
+    for updated_tag in updated_tags:
+        if updated_tag not in [tag.name for tag in post.tags]:
+            new_post_tag = Tag.query.filter_by(name=updated_tag).first()
+            post.tags.append(new_post_tag)
+
     db.session.commit()
 
     return redirect(f'/posts/{post_id}')

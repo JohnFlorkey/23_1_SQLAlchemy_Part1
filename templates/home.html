@@ -8,6 +8,12 @@
     <h3><a href="/posts/{{post.id}}">{{post.title}}</a></h3>
     <p>{{post.content}}</p>
     <small>By <a href="/users/{{post.user_id}}">{{post.user.full_name}}</a> on {{post.created_at}}</small>
+    <p>
+        <span class="fw-bold">Tags:</span>
+        {% for tag in post.tags %}
+        <span class="badge bg-primary">{{tag.name}}</span>
+        {% endfor %}
+    </p>
 </div>
 
 

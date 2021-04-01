@@ -68,6 +68,8 @@ class Post(db.Model):
 
     user = db.relationship('User', backref='posts')
 
+    post_tags = db.relationship('PostTag', backref='post')
+
     def __init__(self, title, content, user_id):
         self.title = title,
         self.content = content,
@@ -95,6 +97,9 @@ class Tag(db.Model):
     posts = db.relationship('Post',
                             secondary='posts_tags',
                             backref='tags')
+
+    def __repr__(self):
+        return f'<Tag id={self.id}, name={self.name}>'
 
 
 class PostTag(db.Model):
